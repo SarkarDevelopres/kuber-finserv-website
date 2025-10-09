@@ -1,0 +1,19 @@
+.mainDiv{
+    display: flex;
+    justify-content: space-between;
+    padding: 20px 0px;
+    margin: 0px 20px;
+    border-bottom: 1px solid rgb(0,0,128);
+}
+
+.logo{
+    width: 200px;
+}
+
+.navLinks{
+    display: flex;
+    align-items: center;
+    width: 15%;
+    justify-content: space-between;
+    font-weight: 600;
+}

@@ -1,0 +1,44 @@
+.sideBarMainDiv {
+  width: 18%;
+  height: 100%;
+  background-color: #010f76;
+  position: relative;
+  /* top: 69px; */
+}
+.linksBar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+}
+.linksBar a {
+  width: 100%;
+  color: #ffae00;
+}
+
+.linksBar span {
+  display: block;
+  width: 100%;
+  padding: 20px;
+  font-size: 20px;
+}
+
+.linksBar span:hover,
+.sideBarMainDiv button:hover {
+  cursor: pointer;
+  background-color: #ffae00;
+}
+.linksBar a:hover,
+.sideBarMainDiv button:hover {
+  color: rgb(0, 0, 128) ;
+}
+.sideBarMainDiv button {
+  border: none;
+  display: block;
+  width: 100%;
+  padding: 20px;
+  font-size: 20px;
+  background-color: transparent;
+  color: #ffae00;
+  text-align: left;
+}
