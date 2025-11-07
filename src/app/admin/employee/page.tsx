@@ -1,22 +1,25 @@
 "use client"
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import AdminSideBar from '@/components/AdminSideBar'
 import { MdSearch, MdAdd } from "react-icons/md";
 import { toast } from 'react-toastify';
 import { IoMdCloseCircle, IoMdTrash } from "react-icons/io";
+import { FaRegSave } from "react-icons/fa";
+import { MdCancel } from "react-icons/md";
 import { FiEdit, FiUser } from "react-icons/fi";
+import { useRouter } from 'next/navigation';
 import SpinnerComp from '@/components/Spinner';
+import { log } from 'node:console';
 
 interface Employee {
-  _id: string;
-  employee_id: string;
+  id: string;
   name: string;
   email: string;
   phone: string;
   department: string;
-  position: string;
+  post: string;
   joinDate: string;
-  status: 'Active' | 'Inactive';
+  status: 'active' | 'inactive' | 'terminated' | 'on_leave' | 'probation';
 }
 
 interface EmpModalProps {
@@ -31,24 +34,102 @@ interface EmpFormData {
   password: string;
   email: string;
   department: string;
-  position: string;
+  post: string;
 }
 
 export function EmpModal({ empData, closeWindow, fetchEmployees }: EmpModalProps) {
+
+  const [mutableEmpData, setMutableEmpData] = useState({ ...empData });
+  const [isEdit, setIsEdit] = useState(false);
+  const toggleBtnRef = useRef<any>(null);
+  const toggleBtnSpanRef = useRef<any>(null);
+
+  const toggleBtn = () => {
+
+    if (mutableEmpData.status == "active") {
+      toggleBtnRef.current.style.backgroundColor = "#ff6467";
+
+      toggleBtnSpanRef.current.style.setProperty("margin", "0px 0px 0px 30px", "important");
+
+      setMutableEmpData(prev => ({ ...prev, status: "inactive" }));
+    }
+    else {
+      toggleBtnRef.current.style.backgroundColor = "#05df72"
+
+      toggleBtnSpanRef.current.style.setProperty("margin", "0px 30px 0px 00px", "important");
+
+      setMutableEmpData(prev => ({ ...prev, status: "active" }));
+    }
+  }
+
+  useEffect(() => {
+    console.log(toggleBtnRef.current);
+
+    if (empData.status == "active" && toggleBtnRef.current) {
+      toggleBtnRef.current.style.backgroundColor = "#05df72"
+    }
+  }, [isEdit])
+
+
+  const editEmployee = async () => {
+
+    if ( mutableEmpData.name == "" || mutableEmpData.email == "" || mutableEmpData.phone == "" || mutableEmpData.department == "" || mutableEmpData.post == "" || mutableEmpData.joinDate == "" || !mutableEmpData.joinDate) {
+      toast.warn("Check all fields !");
+      return;
+    }
+
+
+    if (mutableEmpData.joinDate != empData.joinDate) {
+      const [day, month, year] = mutableEmpData.joinDate.split("-").map(Number);
+      const dateObj = new Date(year, month - 1, day);
+      mutableEmpData.joinDate = dateObj.toString();
+    }
+    let req = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/admin/editEmployee`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ ...mutableEmpData }),
+    });
+    let res = await req.json();
+
+    if (res.ok) {
+      toast.success("Employee Updated !");
+      closeWindow();
+      fetchEmployees();
+    }
+  }
+
   const deleteEmployee = async () => {
+
     const confirmDelete = confirm("Permanently delete employee?");
     if (confirmDelete) {
       try {
-        // Simulate API call
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        toast.success("Employee deleted successfully!");
-        fetchEmployees();
-        closeWindow();
+        let req = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/admin/deleteEmployee`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            empId: empData._id,
+          })
+        });
+        let res = await req.json();
+        if (res.ok) {
+          toast.success("Employee deleted successfully !")
+          fetchEmployees();
+          closeWindow();
+        }
+
       } catch (error) {
         console.error('Error deleting employee:', error);
         toast.error('Failed to delete employee');
       }
     }
+  }
+
+  const editEmployeeData = (e: any) => {
+    setMutableEmpData((prev) => ({ ...prev, [e.target.name]: e.target.value }))
   }
 
   const formatDate = (dateString: string) => {
@@ -60,7 +141,7 @@ export function EmpModal({ empData, closeWindow, fetchEmployees }: EmpModalProps
   }
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-black bg-opacity-20 backdrop-blur-sm flex items-center justify-center z-50 p-4">
       <div className="bg-gray-800 rounded-2xl shadow-2xl border border-gray-700 w-full max-w-md p-6 relative">
         <button
           onClick={closeWindow}
@@ -68,99 +149,114 @@ export function EmpModal({ empData, closeWindow, fetchEmployees }: EmpModalProps
         >
           <IoMdCloseCircle size={24} />
         </button>
-        
+
         <div className="flex items-center space-x-4 mb-6">
           <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center">
             <FiUser className="text-white text-2xl" />
           </div>
           <div>
             <h3 className="text-xl font-semibold text-white">Employee Details</h3>
-            <p className="text-gray-400 text-sm">{empData.employee_id}</p>
+            <p className="text-gray-400 text-sm">{empData.id}</p>
           </div>
         </div>
-        
+
         <div className="space-y-3 mb-6">
           <div className="flex justify-between items-center py-2">
             <span className="text-gray-400 font-medium">Name:</span>
-            <p className="text-white font-medium">{empData.name}</p>
+            {!isEdit && <p className="text-white font-medium">{empData.name}</p>}
+            {isEdit && <input style={{ outline: "1px solid #fff", borderRadius: 10, padding: "5px 10px" }} type="text" name="name" value={mutableEmpData.name} onChange={(e) => editEmployeeData(e)} />}
           </div>
           <div className="flex justify-between items-center py-2">
             <span className="text-gray-400 font-medium">Phone:</span>
-            <p className="text-white font-medium">{empData.phone}</p>
+            {!isEdit && <p className="text-white font-medium">{empData.phone}</p>}
+            {isEdit && <input style={{ outline: "1px solid #fff", borderRadius: 10, padding: "5px 10px" }} type="text" name="phone" value={mutableEmpData.phone} onChange={(e) => editEmployeeData(e)} />}
           </div>
           <div className="flex justify-between items-center py-2">
             <span className="text-gray-400 font-medium">Email:</span>
-            <p className="text-white font-medium">{empData.email}</p>
+            {!isEdit && <p className="text-white font-medium">{empData.email}</p>}
+            {isEdit && <input style={{ outline: "1px solid #fff", borderRadius: 10, padding: "5px 10px" }} type="text" name="email" value={mutableEmpData.email} onChange={(e) => editEmployeeData(e)} />}
           </div>
           <div className="flex justify-between items-center py-2">
             <span className="text-gray-400 font-medium">Department:</span>
-            <p className="text-white font-medium">{empData.department}</p>
+            {!isEdit && <p className="text-white font-medium">{empData.department}</p>}
+            {isEdit && <input style={{ outline: "1px solid #fff", borderRadius: 10, padding: "5px 10px" }} type="text" name="department" value={mutableEmpData.department} onChange={(e) => editEmployeeData(e)} />}
           </div>
           <div className="flex justify-between items-center py-2">
             <span className="text-gray-400 font-medium">Position:</span>
-            <p className="text-white font-medium">{empData.position}</p>
+            {!isEdit && <p className="text-white font-medium">{empData.post}</p>}
+            {isEdit && <input style={{ outline: "1px solid #fff", borderRadius: 10, padding: "5px 10px" }} type="text" name="post" value={mutableEmpData.post} onChange={(e) => editEmployeeData(e)} />}
           </div>
           <div className="flex justify-between items-center py-2">
             <span className="text-gray-400 font-medium">Join Date:</span>
-            <p className="text-white font-medium">{formatDate(empData.joinDate)}</p>
+            {!isEdit && <p className="text-white font-medium">{formatDate(empData.joinDate)}</p>}
+            {isEdit && <input style={{ outline: "1px solid #fff", borderRadius: 10, padding: "5px 10px" }} type="text" name="joinDate" value={mutableEmpData.joinDate} placeholder='DD-MM-YYYY' onChange={(e) => editEmployeeData(e)} />}
           </div>
           <div className="flex justify-between items-center py-2">
             <span className="text-gray-400 font-medium">Status:</span>
-            <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-              empData.status === 'Active' 
-                ? 'bg-green-500/20 text-green-400' 
-                : 'bg-red-500/20 text-red-400'
-            }`}>
+            {!isEdit && <span className={`px-3 py-1 rounded-full text-sm font-medium ${empData.status === 'active'
+              ? 'bg-green-500/20 text-green-400'
+              : 'bg-red-500/20 text-red-400'
+              }`}>
               {empData.status}
-            </span>
+            </span>}
+            {isEdit && <div className="toggleableDiv">
+              <span className='px-3 py-1 rounded-full text-sm font-medium bg-green-500/20 text-green-400'>
+                active
+              </span>
+              <button ref={toggleBtnRef} onClick={() => toggleBtn()} >
+                <span ref={toggleBtnSpanRef}></span>
+              </button>
+              <span className='px-3 py-1 rounded-full text-sm font-medium bg-red-500/20 text-red-400'>
+                inactive
+              </span>
+            </div>}
           </div>
         </div>
-        
+
         <div className="flex space-x-3">
-          <button className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3 px-4 rounded-lg font-medium transition-colors duration-200 flex items-center justify-center space-x-2">
-            <FiEdit size={18} />
-            <span>Edit</span>
+          {isEdit ? <button
+            onClick={editEmployee}
+            className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3 px-4 rounded-lg font-medium transition-colors duration-200 flex items-center justify-center space-x-2">
+            <FaRegSave size={18} />
+            <span>Save</span>
           </button>
-          <button
-            onClick={deleteEmployee}
+            :
+            <button
+              onClick={() => setIsEdit(true)}
+              className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3 px-4 rounded-lg font-medium transition-colors duration-200 flex items-center justify-center space-x-2">
+              <FiEdit size={18} />
+              <span>Edit</span>
+            </button>
+          }
+          {isEdit ? <button
+            onClick={() => setIsEdit(false)}
             className="flex-1 bg-red-600 hover:bg-red-700 text-white py-3 px-4 rounded-lg font-medium transition-colors duration-200 flex items-center justify-center space-x-2"
           >
-            <IoMdTrash size={18} />
-            <span>Delete</span>
+            <span>Cancel</span>
+            <IoMdCloseCircle size={18} />
           </button>
+            :
+            <button
+              onClick={deleteEmployee}
+              className="flex-1 bg-red-600 hover:bg-red-700 text-white py-3 px-4 rounded-lg font-medium transition-colors duration-200 flex items-center justify-center space-x-2"
+            >
+              <IoMdTrash size={18} />
+              <span>Delete</span>
+            </button>
+          }
         </div>
       </div>
     </div>
   );
 }
 
-// Dummy data generator
-const generateDummyEmployees = (count: number): Employee[] => {
-  const firstNames = ['John', 'Jane', 'Mike', 'Sarah', 'David', 'Lisa', 'Robert', 'Emily', 'Michael', 'Jessica'];
-  const lastNames = ['Smith', 'Johnson', 'Williams', 'Brown', 'Jones', 'Garcia', 'Miller', 'Davis', 'Rodriguez', 'Martinez'];
-  const departments = ['Engineering', 'Sales', 'Marketing', 'HR', 'Finance', 'Operations', 'Support'];
-  const positions = ['Manager', 'Developer', 'Analyst', 'Specialist', 'Coordinator', 'Associate'];
-  
-  return Array.from({ length: count }, (_, index) => {
-    const joinDate = new Date();
-    joinDate.setMonth(joinDate.getMonth() - Math.floor(Math.random() * 24));
-    
-    return {
-      _id: `emp_${index + 1}`,
-      employee_id: `EMP${String(index + 1).padStart(3, '0')}`,
-      name: `${firstNames[index % firstNames.length]} ${lastNames[index % lastNames.length]}`,
-      email: `${firstNames[index % firstNames.length].toLowerCase()}.${lastNames[index % lastNames.length].toLowerCase()}@company.com`,
-      phone: `+1${5550000000 + index}`,
-      department: departments[Math.floor(Math.random() * departments.length)],
-      position: positions[Math.floor(Math.random() * positions.length)],
-      joinDate: joinDate.toISOString(),
-      status: Math.random() > 0.2 ? 'Active' : 'Inactive'
-    };
-  });
-};
-
 function EmpPage() {
+
+  const router = useRouter();
   const [employeeList, setEmployeeList] = useState<Employee[]>([]);
+  const [joinedThisMonth, setJoinedThisMonth] = useState(0);
+  const [departmentCount, setDepartmentCount] = useState(0);
+  const [active, setActive] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [empData, setEmpData] = useState<EmpFormData>({
     name: "",
@@ -168,7 +264,7 @@ function EmpPage() {
     password: "",
     email: "",
     department: "",
-    position: ""
+    post: ""
   });
   const [currentEmployee, setCurrentEmployee] = useState<Employee | null>(null);
   const [showEmployeeModal, setShowEmployeeModal] = useState(false);
@@ -176,12 +272,28 @@ function EmpPage() {
 
   const fetchEmployees = async () => {
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      // Generate dummy data
-      const dummyEmployees = generateDummyEmployees(12);
-      setEmployeeList(dummyEmployees);
+
+      let adminToken = localStorage.getItem('adminToken')
+      if (!adminToken || adminToken == "" || adminToken == null) {
+        toast.error("Invaid Login");
+        router.replace('/')
+      }
+      let req = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/admin/fetchEmployee`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${adminToken}`,   // send token in header
+        },
+      });
+      let res = await req.json();
+
+      if (res.ok) {
+        setEmployeeList([...res.data.employeeList]);
+        setJoinedThisMonth(res.data.joinedThisMonth);
+        setDepartmentCount(res.data.departmentCount);
+        setActive(res.data.activeNow);
+      }
+
     } catch (err) {
       console.error("Fetch error:", err);
       toast.error("Failed to fetch employees");
@@ -191,37 +303,53 @@ function EmpPage() {
   };
 
   const addEmployee = async () => {
-    if (!empData.name || !empData.phone || !empData.password || !empData.email || !empData.department || !empData.position) {
+    if (!empData.name || !empData.phone || !empData.password || !empData.email || !empData.department || !empData.post) {
       toast.error("Please fill all fields");
       return;
     }
 
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
+      setIsLoading(true)
+      let adminToken = localStorage.getItem('adminToken');
+
       const newEmployee: Employee = {
-        _id: `emp_${Date.now()}`,
-        employee_id: `EMP${String(employeeList.length + 1).padStart(3, '0')}`,
+        id: `EMP${String(employeeList.length + 1).padStart(3, '0')}`,
         name: empData.name,
         email: empData.email,
         phone: empData.phone,
         department: empData.department,
-        position: empData.position,
+        post: empData.post,
         joinDate: new Date().toISOString(),
-        status: 'Active'
+        status: 'active'
       };
 
-      setEmployeeList(prev => [newEmployee, ...prev]);
-      setEmpData({ 
-        name: "", 
-        phone: "", 
-        password: "", 
-        email: "", 
-        department: "", 
-        position: "" 
+      let req = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/admin/addEmployee`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${adminToken}`,   // send token in header
+        },
+        body: JSON.stringify({
+          newEmployee: newEmployee
+        }),
       });
-      toast.success("Employee added successfully!");
+      let res = await req.json();
+      if (res.ok) {
+        setEmployeeList(prev => [newEmployee, ...prev]);
+        setEmpData({
+          name: "",
+          phone: "",
+          password: "",
+          email: "",
+          department: "",
+          post: ""
+        });
+        toast.success("Employee added successfully!");
+      }
+      else {
+        toast.error("Failed to add employee");
+      }
+      setIsLoading(false)
     } catch (error) {
       console.error('Error adding employee:', error);
       toast.error('Failed to add employee');
@@ -231,9 +359,9 @@ function EmpPage() {
   const filteredEmployees = employeeList.filter(emp =>
     emp.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     emp.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    emp.employee_id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    emp.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
     emp.department.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    emp.position.toLowerCase().includes(searchTerm.toLowerCase())
+    emp.post.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   useEffect(() => {
@@ -246,16 +374,16 @@ function EmpPage() {
   return (
     <div className="min-h-screen bg-gray-900 flex">
       <AdminSideBar page={"emp"} />
-      
+      {isLoading && <SpinnerComp />}
       <div className="flex-1 p-8">
         {showEmployeeModal && currentEmployee && (
-          <EmpModal 
-            empData={currentEmployee} 
-            closeWindow={() => setShowEmployeeModal(false)} 
-            fetchEmployees={fetchEmployees} 
+          <EmpModal
+            empData={currentEmployee}
+            closeWindow={() => setShowEmployeeModal(false)}
+            fetchEmployees={fetchEmployees}
           />
         )}
-        
+
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-white mb-2">Employee Management</h1>
@@ -280,7 +408,7 @@ function EmpPage() {
               <div>
                 <p className="text-gray-400 text-sm">Active</p>
                 <h3 className="text-2xl font-bold text-white">
-                  {employeeList.filter(emp => emp.status === 'Active').length}
+                  {active}
                 </h3>
               </div>
               <div className="w-12 h-12 bg-green-500/20 rounded-xl flex items-center justify-center">
@@ -292,7 +420,7 @@ function EmpPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-400 text-sm">Departments</p>
-                <h3 className="text-2xl font-bold text-white">{new Set(employeeList.map(emp => emp.department)).size}</h3>
+                <h3 className="text-2xl font-bold text-white">{departmentCount}</h3>
               </div>
               <div className="w-12 h-12 bg-purple-500/20 rounded-xl flex items-center justify-center">
                 <FiUser className="text-purple-400 text-xl" />
@@ -304,11 +432,7 @@ function EmpPage() {
               <div>
                 <p className="text-gray-400 text-sm">New This Month</p>
                 <h3 className="text-2xl font-bold text-white">
-                  {employeeList.filter(emp => {
-                    const joinDate = new Date(emp.joinDate);
-                    const now = new Date();
-                    return joinDate.getMonth() === now.getMonth() && joinDate.getFullYear() === now.getFullYear();
-                  }).length}
+                  {joinedThisMonth}
                 </h3>
               </div>
               <div className="w-12 h-12 bg-orange-500/20 rounded-xl flex items-center justify-center">
@@ -359,7 +483,7 @@ function EmpPage() {
               <tbody className="divide-y divide-gray-700">
                 {filteredEmployees.map((employee) => (
                   <tr
-                    key={employee._id}
+                    key={employee.id}
                     onClick={() => {
                       setCurrentEmployee(employee);
                       setShowEmployeeModal(true);
@@ -367,7 +491,7 @@ function EmpPage() {
                     className="hover:bg-gray-700/50 cursor-pointer transition-colors duration-150"
                   >
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-blue-400">
-                      {employee.employee_id}
+                      {employee.id}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center space-x-3">
@@ -380,14 +504,13 @@ function EmpPage() {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">{employee.department}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">{employee.position}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">{employee.post}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">{employee.email}</td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                        employee.status === 'Active' 
-                          ? 'bg-green-500/20 text-green-400' 
-                          : 'bg-red-500/20 text-red-400'
-                      }`}>
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${employee.status === 'active'
+                        ? 'bg-green-500/20 text-green-400'
+                        : 'bg-red-500/20 text-red-400'
+                        }`}>
                         {employee.status}
                       </span>
                     </td>
@@ -434,8 +557,8 @@ function EmpPage() {
               ))}
             </select>
             <select
-              value={empData.position}
-              onChange={(e) => setEmpData(prev => ({ ...prev, position: e.target.value }))}
+              value={empData.post}
+              onChange={(e) => setEmpData(prev => ({ ...prev, post: e.target.value }))}
               className="bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
               <option value="">Select Position</option>

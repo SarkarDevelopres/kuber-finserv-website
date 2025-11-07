@@ -24,3 +24,30 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+.toggleableDiv{
+  width: 220px;
+  display: flex;
+  align-items: center;
+}
+.toggleableDiv span:first-child{
+  margin-right: 10px;
+}
+.toggleableDiv span:last-child{
+  margin-left: 10px;
+}
+.toggleableDiv button{
+  width: 30%;
+  border-radius: 15px;
+  padding: 2px 5px;
+  background-color: aliceblue;
+}
+.toggleableDiv button span{
+  display: block;
+  width: 20px;
+  border-radius: 50%;
+  margin: 0px 30px 0px 0px !important;
+  aspect-ratio: 1;
+  background-color: #0a0a0a;
+  transition: all 300ms ease-in-out;
+}

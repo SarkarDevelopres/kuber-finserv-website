@@ -12,7 +12,7 @@ function HomePage() {
             <span className="text-white font-bold text-2xl">K</span>
           </div>
           <h1 className="text-4xl md:text-6xl font-bold text-white mb-4">
-            Kuber Load
+            Kuber Finserv
           </h1>
           <p className="text-gray-400 text-lg md:text-xl max-w-md mx-auto">
             Choose your portal to continue
@@ -22,7 +22,7 @@ function HomePage() {
         {/* Buttons Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-2xl mx-auto">
           {/* Admin Button */}
-          <button 
+          <button
             onClick={() => window.location.href = '/admin/login'}
             className="group relative bg-gradient-to-br from-blue-500 to-blue-700 rounded-2xl p-8 md:p-12 border border-blue-400/30 hover:border-blue-300/50 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/25"
           >
@@ -37,7 +37,7 @@ function HomePage() {
           </button>
 
           {/* Employee Button */}
-          <button 
+          <button
             onClick={() => window.location.href = '/employee/login'}
             className="group relative bg-gradient-to-br from-purple-500 to-purple-700 rounded-2xl p-8 md:p-12 border border-purple-400/30 hover:border-purple-300/50 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-purple-500/25"
           >

@@ -8,7 +8,7 @@ interface AdminSideBarProps {
   page: "home" | "emp" | "usr" | "loan" | "cnct" | "set"| "msg"
 }
 
-function AdminSideBar({ page }: AdminSideBarProps) {
+function EmpSideBar({ page }: AdminSideBarProps) {
   const router = useRouter()
 
   const getLinkStyles = (linkPage: string) => {
@@ -38,7 +38,7 @@ function AdminSideBar({ page }: AdminSideBarProps) {
     {
       key: "home",
       label: "Dashboard",
-      href: '/admin/',
+      href: '/employee/',
       icon: (
         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
@@ -46,19 +46,9 @@ function AdminSideBar({ page }: AdminSideBarProps) {
       )
     },
     {
-      key: "emp",
-      label: "Team",
-      href: '/admin/employee',
-      icon: (
-        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
-        </svg>
-      )
-    },
-    {
       key: "usr",
       label: "Users",
-      href: '/admin/user',
+      href: '/employee/user',
       icon: (
         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
@@ -68,27 +58,27 @@ function AdminSideBar({ page }: AdminSideBarProps) {
     {
       key: "loan",
       label: "Loans",
-      href: '/admin/loan',
+      href: '/employee/loan',
       icon: (
         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
       )
     },
-    {
-      key: "cnct",
-      label: "Contacts",
-      href: '/admin/contact',
-      icon: (
-        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-        </svg>
-      )
-    },
+    // {
+    //   key: "cnct",
+    //   label: "Contacts",
+    //   href: '/admin/contact',
+    //   icon: (
+    //     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    //       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+    //     </svg>
+    //   )
+    // },
     {
       key: "msg",
       label: "Support",
-      href: '/admin/message',
+      href: '/employee/message',
       icon: (
         <MdOutlineSupportAgent style={{fontSize: 25}}/>
       )
@@ -100,12 +90,12 @@ function AdminSideBar({ page }: AdminSideBarProps) {
       {/* Header */}
       <div className="mb-12">
         <div className="flex items-center space-x-4 mb-6">
-          <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-2xl shadow-blue-500/30">
-            <span className="text-white font-bold text-lg">A</span>
+          <div className="w-12 h-12 bg-purple-600 rounded-2xl flex items-center justify-center shadow-2xl shadow-blue-500/30">
+            <span className="text-white font-bold text-lg">E</span>
           </div>
           <div>
             <h2 className="text-2xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
-              AdminPro
+              EmpPanel
             </h2>
             <p className="text-gray-400 text-sm">Enterprise Portal</p>
           </div>
@@ -147,4 +137,4 @@ function AdminSideBar({ page }: AdminSideBarProps) {
   )
 }
 
-export default AdminSideBar;
+export default EmpSideBar;

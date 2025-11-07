@@ -1,50 +1,14 @@
 "use client"
 import React, { useState, useEffect } from 'react'
-import AdminSideBar from '@/components/AdminSideBar'
+import EmpSideBar from '@/components/EmpSideBar'
 import { MdSearch } from "react-icons/md";
 import { toast } from 'react-toastify';
 import { IoMdCloseCircle } from "react-icons/io";
 import SpinnerComp from '@/components/Spinner';
 import { useRouter } from 'next/navigation';
 
-interface User {
-  _id: string;
-  username: string;
-  email: string;
-  phone: string;
-  pan: string;
-  aadhar: number;
-  loanCount: number;
-  contactCount: number;
-  empReferCode: string;
-  isReferred: boolean;
-  salarySlip: string;
-}
 
-interface EmpModalProps {
-  empData: {
-    id: string;
-    name: string;
-    phone: string;
-    email: string;
-    pan: string;
-    aadhar: number;
-    loanCount: number;
-    contactCount: number;
-    salarySlip: string,
-  };
-  closeWindow: () => void;
-  fetchUsers: () => void;
-}
-
-interface SearchData {
-  username: string;
-  phone: string;
-  email: string;
-}
-
-
-export function EmpModal({ empData, closeWindow, fetchUsers }: EmpModalProps) {
+export function EmpModal({ empData, closeWindow, fetchUsers }) {
 
   const deleteUser = async () => {
     const confirmDelete = confirm("Permanently delete user?");
@@ -130,11 +94,11 @@ export function EmpModal({ empData, closeWindow, fetchUsers }: EmpModalProps) {
   );
 }
 
-function UserPage() {
+function UserEmpPage() {
   const router = useRouter();
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [userList, setUserList] = useState<User[]>([]);
-  const [currentUser, setCurrentUser] = useState<{ id: string; name: string; phone: string; email: string; loanCount: number; contactCount: number; salarySlip: string; pan: string; aadhar: number; }>({
+  const [isLoading, setIsLoading] = useState(false);
+  const [userList, setUserList] = useState([]);
+  const [currentUser, setCurrentUser] = useState({
     id: '',
     name: '',
     phone: '',
@@ -145,8 +109,8 @@ function UserPage() {
     pan: "",
     aadhar: 0,
   });
-  const [showUserModal, setShowUserModal] = useState<boolean>(false);
-  const [searchData, setSearchData] = useState<SearchData>({
+  const [showUserModal, setShowUserModal] = useState(false);
+  const [searchData, setSearchData] = useState({
     username: "",
     phone: "",
     email: ""
@@ -225,13 +189,13 @@ function UserPage() {
   };
 
   useEffect(() => {
-    fetchTotalUsers();
+    // fetchTotalUsers();
   }, []);
 
   return (
     <div className="min-h-screen bg-gray-900 flex">
       {isLoading && <SpinnerComp />}
-      <AdminSideBar page={"usr"} />
+      <EmpSideBar page={"usr"} />
       <div className="flex-1 p-6">
         {showUserModal && (
           <EmpModal
@@ -244,7 +208,7 @@ function UserPage() {
         {/* Header */}
         <div className="mb-8">
           <h2 className="text-3xl font-bold text-white mb-2">User Management</h2>
-          <p className="text-gray-400">Manage and monitor all system users</p>
+          <p className="text-gray-400">Manage and monitor all your users</p>
         </div>
 
         {/* Search Bar */}
@@ -362,4 +326,4 @@ function UserPage() {
   );
 }
 
-export default UserPage;
+export default UserEmpPage;

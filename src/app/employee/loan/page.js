@@ -1,6 +1,6 @@
 "use client"
 import React, { useState, useEffect } from 'react'
-import AdminSideBar from '@/components/AdminSideBar'
+import EmpSideBar from '@/components/EmpSideBar'
 import { MdSearch, MdFilterList } from "react-icons/md";
 import { FaFileInvoiceDollar } from "react-icons/fa";
 import { toast } from 'react-toastify';
@@ -8,38 +8,19 @@ import { IoMdCloseCircle } from "react-icons/io";
 import { useRouter } from 'next/navigation';
 import SpinnerComp from '@/components/Spinner';
 
-interface Loan {
-  _id: string;
-  loanId: string;
-  loanType: string;
-  amount: number;
-  status: 'applied' | 'approved' | 'rejected' | 'disbursed';
-  createdAt: string;
-  customerName: string;
-  customerEmail: string;
-  duration: number;
-  interest: number;
-}
-
-interface SearchData {
-  loanId: string;
-  loanType: string;
-  status: string;
-}
-
-function LoanPage() {
+function LoanEmpPage() {
   const router = useRouter();
-  const [loanList, setLoanList] = useState<Loan[]>([]);
-  const [totalAmount, setTotalAmount] = useState<number>(0);
-  const [filteredLoans, setFilteredLoans] = useState<Loan[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [currentLoan, setCurrentLoan] = useState<Loan | null>(null);
-  const [searchData, setSearchData] = useState<SearchData>({
+  const [loanList, setLoanList] = useState([]);
+  const [totalAmount, setTotalAmount] = useState(0);
+  const [filteredLoans, setFilteredLoans] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [currentLoan, setCurrentLoan] = useState(null);
+  const [searchData, setSearchData] = useState({
     loanId: "",
     loanType: "",
     status: ""
   });
-  const [selectedStatus, setSelectedStatus] = useState<string>('All');
+  const [selectedStatus, setSelectedStatus] = useState('All');
 
   // Dummy data generator
   // const generateDummyLoans = (count: number): Loan[] => {
@@ -138,7 +119,7 @@ function LoanPage() {
     setFilteredLoans(loanList);
   };
 
-  const formatDate = (dateString: string) => {
+  const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
@@ -146,14 +127,14 @@ function LoanPage() {
     });
   };
 
-  const formatCurrency = (amount: number) => {
+  const formatCurrency = (amount) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'USD'
     }).format(amount);
   };
 
-  const getStatusColor = (status: string) => {
+  const getStatusColor = (status) => {
     switch (status) {
       case 'Approved':
         return 'bg-green-500/20 text-green-400';
@@ -168,7 +149,7 @@ function LoanPage() {
     }
   };
 
-  const getLoanTypeColor = (loanType: string) => {
+  const getLoanTypeColor = (loanType) => {
     switch (loanType) {
       case 'Personal Loan':
         return 'text-purple-400';
@@ -186,7 +167,7 @@ function LoanPage() {
   };
 
   useEffect(() => {
-    fetchLoanList();
+    // fetchLoanList();
   }, []);
 
   useEffect(() => {
@@ -203,7 +184,7 @@ function LoanPage() {
 
   return (
     <div className="min-h-screen bg-gray-900 flex">
-      <AdminSideBar page={"loan"} />
+      <EmpSideBar page={"loan"} />
       {isLoading && <SpinnerComp />}
       <div className="flex-1 p-8">
         {/* Header */}
@@ -394,4 +375,4 @@ function LoanPage() {
   )
 }
 
-export default LoanPage
+export default LoanEmpPage

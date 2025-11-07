@@ -12,7 +12,7 @@ function AdminLogin() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!email.trim() || !password.trim()) {
       toast.error("Please fill in all fields");
       return;
@@ -24,11 +24,28 @@ function AdminLogin() {
     }
 
     setIsLoading(true);
-    
+
     try {
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      toast.success("Login successful!");
-      router.replace('/admin');
+      let req = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/auth/adminLogin`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          email,
+          password,
+        }),
+      });
+      let res =  await req.json();
+
+      if (res.ok) {
+        toast.success("Login successful!");
+        localStorage.setItem('adminToken',res.token);
+        router.replace('/admin');
+      }
+      else{
+        toast.error("Login failed. Please check your credentials.");
+      }
     } catch (error) {
       toast.error("Login failed. Please check your credentials.");
     } finally {
@@ -39,7 +56,7 @@ function AdminLogin() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800">
       <Navbar />
-      
+
       <div className="flex items-center justify-center min-h-[calc(100vh-80px)] px-4">
         <div className="w-full max-w-md">
           {/* Card Container */}

@@ -27,12 +27,13 @@ function AdminLogin() {
     
     try {
       await new Promise(resolve => setTimeout(resolve, 1000));
-      toast.success("Login successful!");
-      router.replace('/admin');
+      toast.warn("Employee Panel is not Installed!");
+      // router.replace('/admin');
     } catch (error) {
       toast.error("Login failed. Please check your credentials.");
     } finally {
       setIsLoading(false);
+      router.replace('/employee');
     }
   };
 
@@ -51,7 +52,7 @@ function AdminLogin() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                 </svg>
               </div>
-              <h2 className="text-2xl font-bold text-gray-100 mb-2">Admin Portal</h2>
+              <h2 className="text-2xl font-bold text-gray-100 mb-2">Employee Portal</h2>
               <p className="text-gray-400 text-sm">Enter your credentials to access the dashboard</p>
             </div>
 

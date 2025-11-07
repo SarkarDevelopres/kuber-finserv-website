@@ -1,11 +1,11 @@
 "use client"
-import AdminSideBar from '@/components/AdminSideBar'
+import EmpSideBar from '@/components/EmpSideBar'
 import React, { useState, useEffect } from 'react'
 import { toast } from 'react-toastify';
 import { FaUsers, FaHandHoldingUsd, FaChartLine } from "react-icons/fa";
 import { MdOutlineContactPage, MdTrendingUp } from "react-icons/md";
 import { RiFileList3Line } from "react-icons/ri";
-import { BsEnvelopeCheck, BsGraphUp } from "react-icons/bs";
+import { BsEnvelopeCheck, BsGraphUp, BsEnvelopeX } from "react-icons/bs";
 import { MdCurrencyExchange } from "react-icons/md";
 import { RiHeartsFill } from "react-icons/ri";
 import SpinnerComp from '@/components/Spinner';
@@ -25,26 +25,7 @@ import { Bar } from 'react-chartjs-2';
 
 const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
-interface LoanData {
-    userId: string;
-    loanType: string;
-    amount: number;
-    createdAt: string;
-}
-
-interface GraphData {
-    month: number;
-    totalUsers?: number;
-    totalApplied?: number;
-}
-
-export function LastLoanComponent({ index, loanType, userId, amount, date }: {
-    index: number;
-    loanType: string;
-    userId: string;
-    amount: number;
-    date: string
-}) {
+export function LastLoanComponent({ index, loanType, userId, amount, date }) {
     const [normalDate, setNormalDate] = useState("");
 
     useEffect(() => {
@@ -62,24 +43,24 @@ export function LastLoanComponent({ index, loanType, userId, amount, date }: {
     );
 }
 
-function Admin() {
-    const [contactList, setContactList] = useState(0)
+function EmpPage() {
+    const [rejectedList, setRejectedList] = useState(0)
     const [totalUser, setTotalUser] = useState(0)
     const [appliedLoan, setAppliedLoan] = useState(0)
     const [sanctionedLoan, setSanctionedLoan] = useState(0)
-    const [latestAppliedLoan, setLatestAppliedLoan] = useState<LoanData[]>([])
+    const [latestAppliedLoan, setLatestAppliedLoan] = useState([])
     const [isLoading, setIsLoading] = useState(true)
-    const [userGraphData, setUserGraphData] = useState<GraphData[]>([]);
-    const [appliedLoanGraphData, setAppliedLoanGraphData] = useState<GraphData[]>([]);
+    const [userGraphData, setUserGraphData] = useState([]);
+    const [appliedLoanGraphData, setAppliedLoanGraphData] = useState([]);
 
     const router = useRouter();
 
     const [lineData, setLineData] = useState({
-        labels: [] as string[],
+        labels: [],
         datasets: [
             {
                 label: "Users Growth",
-                data: [] as number[],
+                data: [],
                 borderColor: "#3b82f6",
                 backgroundColor: "rgba(59, 130, 246, 0.1)",
                 fill: true,
@@ -90,11 +71,11 @@ function Admin() {
     });
 
     const [barData, setBarData] = useState({
-        labels: [] as string[],
+        labels: [],
         datasets: [
             {
                 label: 'Applied Loans',
-                data: [] as number[],
+                data: [],
                 backgroundColor: [
                     'rgba(99, 102, 241, 0.8)',
                     'rgba(139, 92, 246, 0.8)',
@@ -119,12 +100,12 @@ function Admin() {
     const generateDummyData = () => {
         // Stats
         setTotalUser(1247);
-        setContactList(89);
+        setRejectedList(89);
         setAppliedLoan(543);
         setSanctionedLoan(387);
 
         // Latest loans
-        const loans: LoanData[] = [
+        const loans = [
             { userId: "user_001", loanType: "Pro", amount: 21, createdAt: new Date().toISOString() },
             { userId: "user_042", loanType: "Premium", amount: 34, createdAt: new Date(Date.now() - 86400000).toISOString() },
             { userId: "user_156", loanType: "Free", amount: 5, createdAt: new Date(Date.now() - 172800000).toISOString() },
@@ -134,7 +115,7 @@ function Admin() {
         setLatestAppliedLoan(loans);
 
         // Graph data
-        const userData: GraphData[] = [
+        const userData = [
             { month: 8, totalUsers: 980 },
             { month: 9, totalUsers: 1045 },
             { month: 10, totalUsers: 1120 },
@@ -143,7 +124,7 @@ function Admin() {
         ];
         setUserGraphData(userData);
 
-        const loanData: GraphData[] = [
+        const loanData = [
             { month: 8, totalApplied: 420 },
             { month: 9, totalApplied: 465 },
             { month: 10, totalApplied: 498 },
@@ -157,22 +138,22 @@ function Admin() {
 
     const startUpData = async () => {
         try {
-            let adminToken = localStorage.getItem('adminToken')
-            if (!adminToken || adminToken == "" || adminToken == null) {
+            let empToken = localStorage.getItem('empToken');
+            if (!empToken || empToken == "" || empToken == null) {
                 toast.error("Invaid Login");
                 router.replace('/')
             }
-            let req = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/admin/fetchStartUpData`, {
+            let req = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/employee/startUpData`, {
                 method: "GET",
                 headers: {
                     "Content-Type": "application/json",
-                    "Authorization": `Bearer ${adminToken}`,   // send token in header
+                    "Authorization": `Bearer ${empToken}`,
                 },
             });
-            let res = await req.json()
+            let res = await req.json();
             if (res.ok) {
                 setTotalUser(res.data.totalUsers);
-                setContactList(res.data.totalContacts);
+                setRejectedList(res.data.totalContacts);
                 setAppliedLoan(res.data.totalAppliedLoans);
                 setSanctionedLoan(res.data.totalSanctionedLoans);
                 setUserGraphData(res.data.userGraph);
@@ -187,7 +168,7 @@ function Admin() {
     }
 
     useEffect(() => {
-        startUpData();
+        // startUpData();
     }, [])
 
     useEffect(() => {
@@ -204,7 +185,7 @@ function Admin() {
         const labels = monthsToShow.map(m => monthNames[m - 1]);
         const dataset = monthsToShow.map(m => {
             const found = userGraphData.find(d => d.month === m);
-            return found ? found.totalUsers! : 0;
+            return found ? found.totalUsers : 0;
         });
 
         setLineData({
@@ -237,7 +218,7 @@ function Admin() {
         const labels = monthsToShow.map(m => monthNames[m - 1]);
         const dataset = monthsToShow.map(m => {
             const found = appliedLoanGraphData.find(d => d.month === m);
-            return found ? found.totalApplied! : 0;
+            return found ? found.totalApplied : 0;
         });
 
         setBarData({
@@ -329,14 +310,6 @@ function Admin() {
             bgColor: "bg-blue-500/10"
         },
         {
-            icon: <MdOutlineContactPage className="text-2xl" />,
-            label: "Contacts",
-            value: contactList,
-            change: "+5.7%",
-            color: "from-emerald-500 to-green-500",
-            bgColor: "bg-emerald-500/10"
-        },
-        {
             icon: <RiFileList3Line className="text-2xl" />,
             label: "Loans Applied",
             value: appliedLoan,
@@ -348,7 +321,15 @@ function Admin() {
             icon: <BsEnvelopeCheck className="text-2xl" />,
             label: "Sanctioned",
             value: sanctionedLoan,
-            change: "+15.2%",
+            change: "+5.7%",
+            color: "from-emerald-500 to-green-500",
+            bgColor: "bg-emerald-500/10"
+        },
+        {
+            icon: <BsEnvelopeX className="text-2xl" />,
+            label: "Rejected",
+            value: rejectedList,
+            change: "-1.2%",
             color: "from-orange-500 to-amber-500",
             bgColor: "bg-orange-500/10"
         }
@@ -357,7 +338,7 @@ function Admin() {
     return (
         <div className="min-h-screen bg-gray-900 flex">
 
-            <AdminSideBar page={"home"} />
+            <EmpSideBar page={"home"} />
 
             <div className="flex-1 p-8">
                 {/* Header */}
@@ -454,4 +435,4 @@ function Admin() {
     )
 }
 
-export default Admin
+export default EmpPage

@@ -1,0 +1,20 @@
+.messageBox {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  height: fit-content;
+  max-height: 800;
+  scroll-behavior: smooth;
+}
+.messageBox::-webkit-scrollbar {
+  width: 8px;
+}
+.messageBox::-webkit-scrollbar-thumb {
+  background-color: rgb(62, 0, 177);
+  border-radius: 5px;
+}
+.messageBox::-webkit-scrollbar-track {
+  background: #003d5cb9;
+  border-radius: 5px;
+}
