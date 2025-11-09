@@ -14,6 +14,7 @@ interface User {
   phone: string;
   pan: string;
   aadhar: number;
+  address: object;
   loanCount: number;
   contactCount: number;
   empReferCode: string;
@@ -29,6 +30,7 @@ interface EmpModalProps {
     email: string;
     pan: string;
     aadhar: number;
+    address: object;
     loanCount: number;
     contactCount: number;
     salarySlip: string,
@@ -106,6 +108,10 @@ export function EmpModal({ empData, closeWindow, fetchUsers }: EmpModalProps) {
             <p className="text-white font-medium">{empData.aadhar}</p>
           </div>
           <div className="flex justify-between items-center py-2 border-b border-gray-700">
+            <span className="text-gray-400 font-medium">Aadhar:</span>
+            <p className="text-white font-medium">{`${empData.address.house} ${empData.address.lane} ${empData.address.city} ${empData.address.distrct} ${empData.address.state} ${empData.address.pincode}`}</p>
+          </div>
+          <div className="flex justify-between items-center py-2 border-b border-gray-700">
             <span className="text-gray-400 font-medium">SalarySlip URL:</span>
             <p className="text-blue-400 font-medium">{empData.salarySlip}</p>
           </div>
@@ -134,7 +140,7 @@ function UserPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [userList, setUserList] = useState<User[]>([]);
-  const [currentUser, setCurrentUser] = useState<{ id: string; name: string; phone: string; email: string; loanCount: number; contactCount: number; salarySlip: string; pan: string; aadhar: number; }>({
+  const [currentUser, setCurrentUser] = useState<{ id: string; name: string; phone: string; email: string; loanCount: number; contactCount: number; salarySlip: string; pan: string; aadhar: number; address:object; }>({
     id: '',
     name: '',
     phone: '',
@@ -144,6 +150,7 @@ function UserPage() {
     salarySlip: "",
     pan: "",
     aadhar: 0,
+    address:{}
   });
   const [showUserModal, setShowUserModal] = useState<boolean>(false);
   const [searchData, setSearchData] = useState<SearchData>({
@@ -317,6 +324,7 @@ function UserPage() {
                         salarySlip: user.salarySlip,
                         pan: user.pan,
                         aadhar: user.aadhar,
+                        address:user.address,
                       });
                       setShowUserModal(true);
                     }}

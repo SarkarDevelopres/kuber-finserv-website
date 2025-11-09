@@ -11,17 +11,20 @@ import { MdOutlineMarkEmailRead } from "react-icons/md";
 import UnreadMessages from '../../../components/UnreadMessages';
 import ReadMessages from '../../../components/ReadMessages';
 import styles from "./style.module.css"
+import { socket } from "@/utils/socket";
+import { useNotification } from "@/context/notificationContext";
 
 function MessagePage() {
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(false);
+    const { hasNotification, setHasNotification } = useNotification();
     const [readMessages, setReadMessages] = useState([
         {
             username: "sagniksarkar",
             phone: 7001809047,
             email: "sarkarindustries77@gmail.com",
-            time: "2025-11-04T14:02:11.000Z",
-            messageBody: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce posuere dictum sagittis. Nam tempus feugiat mauris, quis mollis diam malesuada vitae. In in faucibus elit.",
+            createdAt: "2025-11-04T14:02:11.000Z",
+            message: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce posuere dictum sagittis. Nam tempus feugiat mauris, quis mollis diam malesuada vitae. In in faucibus elit.",
             replyTime: "2025-11-04T20:08:21.000Z",
             replyBy: "Admin",
             reply: "Nam tempus feugiat mauris, quis mollis diam malesuada vitae. In in faucibus elit.",
@@ -30,8 +33,8 @@ function MessagePage() {
             username: "samratsarkar",
             phone: 7001809047,
             email: "sarkarindustries77@gmail.com",
-            time: "2025-11-04T14:02:11.000Z",
-            messageBody: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce posuere dictum sagittis. Nam tempus feugiat mauris, quis mollis diam malesuada vitae. In in faucibus elit.",
+            createdAt: "2025-11-04T14:02:11.000Z",
+            message: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce posuere dictum sagittis. Nam tempus feugiat mauris, quis mollis diam malesuada vitae. In in faucibus elit.",
             replyTime: "2025-11-04T20:08:21.000Z",
             replyBy: "emp087",
             reply: "Nam tempus feugiat mauris, quis mollis diam malesuada vitae. In in faucibus elit.",
@@ -40,8 +43,8 @@ function MessagePage() {
             username: "sagniksarkar",
             phone: 7001809047,
             email: "sarkarindustries77@gmail.com",
-            time: "2025-11-04T14:02:11.000Z",
-            messageBody: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce posuere dictum sagittis. Nam tempus feugiat mauris, quis mollis diam malesuada vitae. In in faucibus elit.",
+            createdAt: "2025-11-04T14:02:11.000Z",
+            message: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce posuere dictum sagittis. Nam tempus feugiat mauris, quis mollis diam malesuada vitae. In in faucibus elit.",
             replyTime: "2025-11-04T20:08:21.000Z",
             replyBy: "Admin",
             reply: "Nam tempus feugiat mauris, consectetur adipiscing elit. Fusce posuere dictum sagittis quis mollis diam malesuada vitae. In in faucibus elit.",
@@ -53,25 +56,25 @@ function MessagePage() {
             username: "sagniksarkar",
             phone: 7001809047,
             email: "sarkarindustries77@gmail.com",
-            time: "2025-11-04T14:02:11.000Z",
-            messageBody: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce posuere dictum sagittis. Nam tempus feugiat mauris, quis mollis diam malesuada vitae. In in faucibus elit.",
+            createdAt: "2025-11-04T14:02:11.000Z",
+            message: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce posuere dictum sagittis. Nam tempus feugiat mauris, quis mollis diam malesuada vitae. In in faucibus elit.",
         },
         {
             username: "samratsarkar",
             phone: 7001809047,
             email: "sarkarindustries77@gmail.com",
-            time: "2025-11-04T14:02:11.000Z",
-            messageBody: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce posuere dictum sagittis. Nam tempus feugiat mauris, quis mollis diam malesuada vitae. In in faucibus elit.",
+            createdAt: "2025-11-04T14:02:11.000Z",
+            message: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce posuere dictum sagittis. Nam tempus feugiat mauris, quis mollis diam malesuada vitae. In in faucibus elit.",
         },
         {
             username: "sagniksarkar",
             phone: 7001809047,
             email: "sarkarindustries77@gmail.com",
-            time: "2025-11-04T14:02:11.000Z",
-            messageBody: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce posuere dictum sagittis. Nam tempus feugiat mauris, quis mollis diam malesuada vitae. In in faucibus elit.",
+            createdAt: "2025-11-04T14:02:11.000Z",
+            message: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce posuere dictum sagittis. Nam tempus feugiat mauris, quis mollis diam malesuada vitae. In in faucibus elit.",
         },
     ]);
-
+    const [repliedMessages, setRepliedMessages] = useState([])
     function formatISOToCustom(isoString) {
         const date = new Date(isoString);
 
@@ -85,6 +88,60 @@ function MessagePage() {
 
         return `${hours}:${minutes}:${seconds}-${day}/${month}/${year}`;
     }
+
+    const fetchMessages = async () => {
+        let adminToken = localStorage.getItem('adminToken')
+        if (!adminToken || adminToken == "" || adminToken == null) {
+            toast.error("Invaid Login");
+            router.replace('/')
+        }
+
+        let req = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/admin/fetchMessages`, {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${adminToken}`,
+            },
+        });
+        let res = await req.json();
+        console.log(res);
+
+
+        if (res.ok) {
+            setHasNotification(false);
+            let readMessages = res.messages.filter(m => m.isRead != false && m.isAnswered == false);
+            let unreadMessages = res.messages.filter(m => m.isRead == false);
+            let repliedMessages = res.messages.filter(m => m.isAnswered == true);
+
+            setReadMessages([...readMessages]);
+            setUnReadMessages([...unreadMessages]);
+            setRepliedMessages([...repliedMessages]);
+        }
+
+    }
+
+    useEffect(() => {
+        socket.connect();
+
+        socket.emit("join_admin");
+
+        socket.on("get_message", (data) => {
+            setUnReadMessages((prev) => [...prev, data]);
+        });
+
+        socket.emit("join_room", "admin-room");
+
+        return () => {
+            socket.off("get_message");
+            socket.disconnect();
+        };
+    }, [])
+
+
+    useEffect(() => {
+        fetchMessages();
+    }, [])
+
 
     return (
         <div className="min-h-screen bg-gray-900 flex">
@@ -107,11 +164,14 @@ function MessagePage() {
                             unReadMessages.map((e, i) => {
                                 return <UnreadMessages
                                     key={i}
+                                    id={e._id}
                                     username={e.username}
                                     phone={e.phone}
                                     email={e.email}
-                                    time={formatISOToCustom(e.time)}
-                                    messageBody={e.messageBody}
+                                    isRead={e.isRead}
+                                    time={formatISOToCustom(e.createdAt)}
+                                    messageBody={e.message}
+                                    fetchMessages={() => fetchMessages()}
                                 />
                             })
                         }
@@ -126,14 +186,38 @@ function MessagePage() {
                     <div className={styles.messageBox} >
                         {
                             readMessages.map((e, i) => {
-                                return <ReadMessages
+                                return <UnreadMessages
                                     key={i}
+                                    id={e._id}
                                     username={e.username}
                                     phone={e.phone}
                                     email={e.email}
-                                    time={formatISOToCustom(e.time)}
-                                    messageBody={e.messageBody}
-                                    reply={e.reply}
+                                    isRead={e.isRead}
+                                    time={formatISOToCustom(e.createdAt)}
+                                    messageBody={e.message}
+                                />
+                            })
+                        }
+                    </div>
+                </div>
+                <div className="bg-gray-800 rounded-2xl p-6 mb-8 border border-gray-700">
+                    <h3 className="text-lg font-semibold text-white mb-4 flex items-center space-x-2">
+                        <MdOutlineMarkEmailRead className="text-blue-400" />
+                        <span>Replied Messages</span>
+                        {/* #00679bb9 */}
+                    </h3>
+                    <div className={styles.messageBox} >
+                        {
+                            repliedMessages.map((e, i) => {
+                                return <ReadMessages
+                                    key={i}
+                                    id={e._id}
+                                    username={e.username}
+                                    phone={e.phone}
+                                    email={e.email}
+                                    time={formatISOToCustom(e.createdAt)}
+                                    messageBody={e.message}
+                                    reply={e.replyText}
                                     replyBy={e.replyBy}
                                     replyTime={formatISOToCustom(e.replyTime)}
                                 />

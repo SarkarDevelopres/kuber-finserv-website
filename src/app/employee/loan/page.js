@@ -13,7 +13,7 @@ function LoanEmpPage() {
   const [loanList, setLoanList] = useState([]);
   const [totalAmount, setTotalAmount] = useState(0);
   const [filteredLoans, setFilteredLoans] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [currentLoan, setCurrentLoan] = useState(null);
   const [searchData, setSearchData] = useState({
     loanId: "",
@@ -22,45 +22,19 @@ function LoanEmpPage() {
   });
   const [selectedStatus, setSelectedStatus] = useState('All');
 
-  // Dummy data generator
-  // const generateDummyLoans = (count: number): Loan[] => {
-  //   const loanTypes = ['Personal Loan', 'Home Loan', 'Business Loan', 'Education Loan', 'Car Loan'];
-  //   const statuses: ('applied' | 'Approved' | 'Rejected' | 'Disbursed')[] = ['applied', 'Approved', 'Rejected', 'Disbursed'];
-  //   const firstNames = ['John', 'Jane', 'Mike', 'Sarah', 'David', 'Lisa', 'Robert', 'Emily'];
-  //   const lastNames = ['Smith', 'Johnson', 'Williams', 'Brown', 'Jones', 'Garcia', 'Miller'];
-
-  //   return Array.from({ length: count }, (_, index) => {
-  //     const loanDate = new Date();
-  //     loanDate.setDate(loanDate.getDate() - Math.floor(Math.random() * 30));
-
-  //     return {
-  //       _id: `loan_${index + 1}`,
-  //       loanId: `LN${String(index + 1).padStart(5, '0')}`,
-  //       loanType: loanTypes[Math.floor(Math.random() * loanTypes.length)],
-  //       amount: Math.floor(Math.random() * 100000) + 5000,
-  //       status: statuses[Math.floor(Math.random() * statuses.length)],
-  //       createdAt: loanDate.toISOString(),
-  //       customerName: `${firstNames[Math.floor(Math.random() * firstNames.length)]} ${lastNames[Math.floor(Math.random() * lastNames.length)]}`,
-  //       customerEmail: `customer${index + 1}@email.com`,
-  //       duration: Math.floor(Math.random() * 60) + 12,
-  //       interest: Math.random() * 5 + 3.5
-  //     };
-  //   });
-  // };
-
   const fetchLoanList = async () => {
     try {
-      let adminToken = localStorage.getItem('adminToken')
-      if (!adminToken || adminToken == "" || adminToken == null) {
+      let empToken = localStorage.getItem('empToken')
+      if (!empToken || empToken == "" || empToken == null) {
         toast.error("Invaid Login");
         router.replace('/')
       }
 
-      let req = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/admin/fetchLoanList`, {
+      let req = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/employee/fetchLoanList`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${adminToken}`,
+          "Authorization": `Bearer ${empToken}`,
         },
       });
       let res = await req.json();
@@ -68,7 +42,7 @@ function LoanEmpPage() {
       if (res.ok) {
         console.log(res);
         
-        setLoanList([...res.data]);
+        setLoanList([...res.loanList]);
         setTotalAmount(res.amount);
       }
     } catch (error) {
@@ -167,7 +141,7 @@ function LoanEmpPage() {
   };
 
   useEffect(() => {
-    // fetchLoanList();
+    fetchLoanList();
   }, []);
 
   useEffect(() => {

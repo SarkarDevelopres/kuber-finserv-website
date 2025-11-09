@@ -8,33 +8,7 @@ import SpinnerComp from '@/components/Spinner';
 import { useRouter } from 'next/navigation';
 
 
-export function EmpModal({ empData, closeWindow, fetchUsers }) {
-
-  const deleteUser = async () => {
-    const confirmDelete = confirm("Permanently delete user?");
-    if (confirmDelete) {
-      try {
-        let req = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/admin/deleteUser`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            userId: empData.id,
-          })
-        });
-        let res = await req.json();
-        if (res.ok) {
-          toast.success("User deleted successfully!");
-          fetchUsers();
-          closeWindow();
-        }
-      } catch (error) {
-        console.error('Error deleting user:', error);
-        toast.error('Failed to delete user');
-      }
-    }
-  };
+export function EmpModal({ empData, closeWindow }) {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
@@ -77,18 +51,7 @@ export function EmpModal({ empData, closeWindow, fetchUsers }) {
             <span className="text-gray-400 font-medium">Loans Applied:</span>
             <p className="text-blue-400 font-medium">{empData.loanCount}</p>
           </div>
-          <div className="flex justify-between items-center py-2 border-b border-gray-700">
-            <span className="text-gray-400 font-medium">Contacts:</span>
-            <p className="text-green-400 font-medium">{empData.contactCount}</p>
-          </div>
         </div>
-
-        <button
-          onClick={deleteUser}
-          className="w-full bg-red-600 hover:bg-red-700 text-white py-3 px-4 rounded-lg font-medium transition-colors duration-200 flex items-center justify-center space-x-2"
-        >
-          <span>Delete User</span>
-        </button>
       </div>
     </div>
   );
@@ -96,7 +59,7 @@ export function EmpModal({ empData, closeWindow, fetchUsers }) {
 
 function UserEmpPage() {
   const router = useRouter();
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [userList, setUserList] = useState([]);
   const [currentUser, setCurrentUser] = useState({
     id: '',
@@ -118,16 +81,16 @@ function UserEmpPage() {
 
   const fetchTotalUsers = async () => {
     try {
-      let adminToken = localStorage.getItem('adminToken')
-      if (!adminToken || adminToken == "" || adminToken == null) {
+      let empToken = localStorage.getItem('empToken')
+      if (!empToken || empToken == "" || empToken == null) {
         toast.error("Invaid Login");
         router.replace('/')
       }
-      let req = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/admin/fetchUser`, {
+      let req = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/employee/fetchUsers`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${adminToken}`,   // send token in header
+          "Authorization": `Bearer ${empToken}`,   // send token in header
         },
       });
       let res = await req.json();
@@ -189,7 +152,7 @@ function UserEmpPage() {
   };
 
   useEffect(() => {
-    // fetchTotalUsers();
+    fetchTotalUsers();
   }, []);
 
   return (
@@ -201,7 +164,6 @@ function UserEmpPage() {
           <EmpModal
             empData={currentUser}
             closeWindow={() => setShowUserModal(false)}
-            fetchUsers={fetchTotalUsers}
           />
         )}
 

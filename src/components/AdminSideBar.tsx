@@ -1,21 +1,41 @@
 "use client"
 import Link from 'next/link'
-import React from 'react'
+import React, { useEffect } from 'react'
 import { useRouter } from "next/navigation"
 import { MdOutlineSupportAgent } from "react-icons/md";
+import { socket } from "@/utils/socket";
+import { useNotification } from "@/context/notificationContext";
 
 interface AdminSideBarProps {
-  page: "home" | "emp" | "usr" | "loan" | "cnct" | "set"| "msg"
+  page: "home" | "emp" | "usr" | "loan" | "cnct" | "set" | "msg"
 }
 
 function AdminSideBar({ page }: AdminSideBarProps) {
-  const router = useRouter()
+  const router = useRouter();
+  const { hasNotification, setHasNotification } = useNotification();
+  useEffect(() => {
+
+    socket.connect();
+    socket.emit("join_admin");
+
+    socket.on("new_user_message", (data) => {
+      setHasNotification(true)
+    });
+
+    return () => {
+      if (socket.connected) {
+        socket.disconnect();
+        console.log("Socket disconnected (AdminSide Bar unmounted)");
+      }
+    }
+  }, [])
+
 
   const getLinkStyles = (linkPage: string) => {
     const baseStyles = "flex items-center space-x-4 px-6 py-4 rounded-2xl text-gray-300 hover:text-white hover:bg-gradient-to-r hover:from-blue-500/20 hover:to-purple-500/20 transition-all duration-300 group border border-transparent hover:border-blue-500/30"
     const activeStyles = "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-2xl shadow-blue-500/30 border-blue-400/50"
-    
-    return page === linkPage 
+
+    return page === linkPage
       ? `${baseStyles} ${activeStyles}`
       : baseStyles
   }
@@ -27,7 +47,7 @@ function AdminSideBar({ page }: AdminSideBarProps) {
 
   const logOut = () => {
     const confirmLogOut = confirm("Are you sure you want to log out?")
-    
+
     if (confirmLogOut) {
       localStorage.clear()
       router.replace("/")
@@ -90,7 +110,7 @@ function AdminSideBar({ page }: AdminSideBarProps) {
       label: "Support",
       href: '/admin/message',
       icon: (
-        <MdOutlineSupportAgent style={{fontSize: 25}}/>
+        <MdOutlineSupportAgent style={{ fontSize: 25 }} />
       )
     }
   ]
@@ -115,11 +135,12 @@ function AdminSideBar({ page }: AdminSideBarProps) {
       {/* Navigation Links */}
       <nav className="flex-1 space-y-3">
         {menuItems.map((item) => (
-          <Link 
+          <Link
             key={item.key}
-            href={item.href} 
+            href={item.href}
             className={getLinkStyles(item.key)}
           >
+            {(item.key == "msg" && hasNotification && page != "msg") && <span style={{ width: 20, height: 20, backgroundColor: "red", position: "absolute", borderRadius: 10, right: 10 }}></span>}
             <div className={getIconStyles(item.key)}>
               {item.icon}
             </div>
@@ -133,7 +154,7 @@ function AdminSideBar({ page }: AdminSideBarProps) {
 
       {/* Logout Button */}
       <div className="pt-8 border-t border-gray-700/50">
-        <button 
+        <button
           onClick={logOut}
           className="flex items-center space-x-4 w-full px-6 py-4 text-red-400 hover:text-white hover:bg-gradient-to-r hover:from-red-500/20 hover:to-pink-500/20 rounded-2xl transition-all duration-300 group border border-transparent hover:border-red-500/30"
         >

@@ -10,6 +10,7 @@ import { MdCurrencyExchange } from "react-icons/md";
 import { RiHeartsFill } from "react-icons/ri";
 import SpinnerComp from '@/components/Spinner';
 import { useRouter } from 'next/navigation';
+import { useNotification } from "@/context/notificationContext";
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
 import { CategoryScale, LinearScale, BarElement, Title, PointElement, LineElement, Filler } from 'chart.js';
 ChartJS.register(
@@ -56,7 +57,7 @@ export function LastLoanComponent({ index, loanType, userId, amount, date }: {
             <td className="px-6 py-4 text-sm text-gray-300">{index + 1}</td>
             <td className="px-6 py-4 text-sm font-medium text-blue-400">{loanType}</td>
             <td className="px-6 py-4 text-sm text-gray-300 font-mono">{userId.slice(0, 8)}...</td>
-            <td className="px-6 py-4 text-sm text-green-400 font-semibold">${amount.toLocaleString()}</td>
+            <td className="px-6 py-4 text-sm text-green-400 font-semibold">₹{amount.toLocaleString()}</td>
             <td className="px-6 py-4 text-sm text-gray-400">{normalDate || "..."}</td>
         </tr>
     );
@@ -71,7 +72,7 @@ function Admin() {
     const [isLoading, setIsLoading] = useState(true)
     const [userGraphData, setUserGraphData] = useState<GraphData[]>([]);
     const [appliedLoanGraphData, setAppliedLoanGraphData] = useState<GraphData[]>([]);
-
+    const { hasNotification, setHasNotification } = useNotification();
     const router = useRouter();
 
     const [lineData, setLineData] = useState({
@@ -178,6 +179,10 @@ function Admin() {
                 setUserGraphData(res.data.userGraph);
                 setAppliedLoanGraphData(res.data.appliedLoanGraph);
                 setLatestAppliedLoan(res.data.latestAppliedLoans);
+
+                if (res.data.notification) {
+                    setHasNotification(true);
+                }
             }
         } catch (err) {
             console.error("Fetch error:", err);

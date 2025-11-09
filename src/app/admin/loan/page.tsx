@@ -13,11 +13,12 @@ interface Loan {
   loanId: string;
   loanType: string;
   amount: number;
-  status: 'applied' | 'approved' | 'rejected' | 'disbursed';
+  status: 'applied' | 'approved' | 'rejected' | 'disbursed' | 'paused';
   createdAt: string;
   customerName: string;
   customerEmail: string;
-  duration: number;
+  tenure: number;
+  unit: string;
   interest: number;
 }
 
@@ -25,6 +26,145 @@ interface SearchData {
   loanId: string;
   loanType: string;
   status: string;
+}
+
+const formatCurrency = (amount: number) => {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'INR'
+  }).format(amount);
+};
+const formatDate = (dateString: string) => {
+  return new Date(dateString).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric'
+  });
+}
+
+export function LoanModal({ loanData, closeWindow, fetchLoans }: any) {
+
+  const rejectLoan = async () => {
+    const confirmDelete = confirm("Permanently reject loan?");
+    if (confirmDelete) {
+      try {
+        let req = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/admin/rejectLoan`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            loanId: loanData.loanId,
+          })
+        });
+        let res = await req.json();
+        if (res.ok) {
+          toast.success("Loan rejected successfully!");
+          fetchLoans();
+          closeWindow();
+        }
+      } catch (error) {
+        console.error('Error rejecting loan:', error);
+        toast.error('Failed to rehect loan');
+      }
+    }
+  };
+
+  const sanctionLoan = async () => {
+    try {
+      let req = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/admin/approveLoan`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          loanId: loanData.loanId,
+        })
+      });
+      let res = await req.json();
+      if (res.ok) {
+        toast.success("Loan sanctioned successfully!");
+        fetchLoans();
+        closeWindow();
+      }
+    } catch (error) {
+      console.error('Error sanctioning loan:', error);
+      toast.error('Failed to sanction loan');
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-gray-800 rounded-xl shadow-2xl border border-gray-700 w-full max-w-md p-6 relative">
+        <button
+          onClick={closeWindow}
+          className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors duration-200"
+        >
+          <IoMdCloseCircle size={24} />
+        </button>
+
+        <h3 className="text-xl font-semibold text-white mb-6">Loan Details</h3>
+
+        <div className="space-y-4 mb-6">
+          <div className="flex justify-between items-center py-2 border-b border-gray-700">
+            <span className="text-gray-400 font-medium">Loan ID:</span>
+            <p className="text-white font-medium">{loanData.loanId}</p>
+          </div>
+          <div className="flex justify-between items-center py-2 border-b border-gray-700">
+            <span className="text-gray-400 font-medium">Loan Type:</span>
+            <p className="text-white font-medium">{loanData.loanType}</p>
+          </div>
+          <div className="flex justify-between items-center py-2 border-b border-gray-700">
+            <span className="text-gray-400 font-medium">Cust. Name:</span>
+            <p className="text-white font-medium">{loanData.customerName}</p>
+          </div>
+          <div className="flex justify-between items-center py-2 border-b border-gray-700">
+            <span className="text-gray-400 font-medium">Cust. Email:</span>
+            <p className="text-white font-medium">{loanData.customerEmail}</p>
+          </div>
+          <div className="flex justify-between items-center py-2 border-b border-gray-700">
+            <span className="text-gray-400 font-medium">Amount:</span>
+            <p className="text-white font-medium">{formatCurrency(loanData.amount)}</p>
+          </div>
+          <div className="flex justify-between items-center py-2 border-b border-gray-700">
+            <span className="text-gray-400 font-medium">Duration:</span>
+            <p className="text-blue-400 font-medium">{`${loanData.tenure} ${loanData.unit}`}</p>
+          </div>
+          <div className="flex justify-between items-center py-2 border-b border-gray-700">
+            <span className="text-gray-400 font-medium">EMI Amnt.:</span>
+            <p className="text-blue-400 font-medium">{formatCurrency(loanData.emi)}</p>
+          </div>
+          {(loanData.status != "applied") && <>
+            <div className="flex justify-between items-center py-2 border-b border-gray-700">
+              <span className="text-gray-400 font-medium">Due Date.:</span>
+              <p className="text-white-400 font-medium">{formatDate(loanData.dueDate)}</p>
+            </div>
+            <div className="flex justify-between items-center py-2 border-b border-gray-700">
+              <span className="text-gray-400 font-medium">Paid Till:</span>
+              <p className="text-white font-medium">{loanData.paidTill}</p>
+            </div></>}
+          <div className="flex justify-between items-center py-2 border-b border-gray-700">
+            <span className="text-gray-400 font-medium">Status:</span>
+            <p className="text-green-400 font-medium">{loanData.status}</p>
+          </div>
+        </div>
+        {(loanData.status !== "rejected") && <div className="flex space-x-3">
+          {(loanData.status == "applied") && <button
+            onClick={sanctionLoan}
+            className={`w-50 ${loanData.status == "applied" ? "bg-green-600 hover:bg-green-700" : "bg-grey-600 hover:bg-grey-700"} text-white py-3 px-4 rounded-lg font-medium transition-colors duration-200 flex items-center justify-center space-x-2 cursor-pointer`}
+          >
+            <span>{loanData.status == "applied" ? "Sanction Loan" : "Pause Loan"}</span>
+          </button>}
+          <button
+            onClick={rejectLoan}
+            className={`${loanData.status == "applied" ? "w-50" : "w-100"} bg-red-600 hover:bg-red-700 text-white py-3 px-4 rounded-lg font-medium transition-colors duration-200 flex items-center justify-center space-x-2 cursor-pointer`}
+          >
+            <span>{"Reject Loan"}</span>
+          </button>
+        </div>}
+      </div>
+    </div>
+  );
 }
 
 function LoanPage() {
@@ -40,32 +180,7 @@ function LoanPage() {
     status: ""
   });
   const [selectedStatus, setSelectedStatus] = useState<string>('All');
-
-  // Dummy data generator
-  // const generateDummyLoans = (count: number): Loan[] => {
-  //   const loanTypes = ['Personal Loan', 'Home Loan', 'Business Loan', 'Education Loan', 'Car Loan'];
-  //   const statuses: ('applied' | 'Approved' | 'Rejected' | 'Disbursed')[] = ['applied', 'Approved', 'Rejected', 'Disbursed'];
-  //   const firstNames = ['John', 'Jane', 'Mike', 'Sarah', 'David', 'Lisa', 'Robert', 'Emily'];
-  //   const lastNames = ['Smith', 'Johnson', 'Williams', 'Brown', 'Jones', 'Garcia', 'Miller'];
-
-  //   return Array.from({ length: count }, (_, index) => {
-  //     const loanDate = new Date();
-  //     loanDate.setDate(loanDate.getDate() - Math.floor(Math.random() * 30));
-
-  //     return {
-  //       _id: `loan_${index + 1}`,
-  //       loanId: `LN${String(index + 1).padStart(5, '0')}`,
-  //       loanType: loanTypes[Math.floor(Math.random() * loanTypes.length)],
-  //       amount: Math.floor(Math.random() * 100000) + 5000,
-  //       status: statuses[Math.floor(Math.random() * statuses.length)],
-  //       createdAt: loanDate.toISOString(),
-  //       customerName: `${firstNames[Math.floor(Math.random() * firstNames.length)]} ${lastNames[Math.floor(Math.random() * lastNames.length)]}`,
-  //       customerEmail: `customer${index + 1}@email.com`,
-  //       duration: Math.floor(Math.random() * 60) + 12,
-  //       interest: Math.random() * 5 + 3.5
-  //     };
-  //   });
-  // };
+  const [showUserModal, setShowUserModal] = useState<boolean>(false);
 
   const fetchLoanList = async () => {
     try {
@@ -86,7 +201,7 @@ function LoanPage() {
 
       if (res.ok) {
         console.log(res);
-        
+
         setLoanList([...res.data]);
         setTotalAmount(res.amount);
       }
@@ -146,20 +261,13 @@ function LoanPage() {
     });
   };
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD'
-    }).format(amount);
-  };
-
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'Approved':
+      case 'approved':
         return 'bg-green-500/20 text-green-400';
       case 'Pending':
         return 'bg-yellow-500/20 text-yellow-400';
-      case 'Rejected':
+      case 'rejected':
         return 'bg-red-500/20 text-red-400';
       case 'Disbursed':
         return 'bg-blue-500/20 text-blue-400';
@@ -206,6 +314,13 @@ function LoanPage() {
       <AdminSideBar page={"loan"} />
       {isLoading && <SpinnerComp />}
       <div className="flex-1 p-8">
+        {showUserModal && (
+          <LoanModal
+            loanData={currentLoan}
+            closeWindow={() => setShowUserModal(false)}
+            fetchLoans={fetchLoanList}
+          />
+        )}
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-white mb-2">Loan Management</h1>
@@ -323,7 +438,10 @@ function LoanPage() {
                 {filteredLoans.map((loan, index) => (
                   <tr
                     key={loan._id}
-                    onClick={() => setCurrentLoan(loan)}
+                    onClick={() => {
+                      setCurrentLoan(loan)
+                      setShowUserModal(true);
+                    }}
                     className="hover:bg-gray-700/50 cursor-pointer transition-colors duration-150"
                   >
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-blue-400">
@@ -344,7 +462,7 @@ function LoanPage() {
                       {formatCurrency(loan.amount)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
-                      {loan.duration} months
+                      {`${loan.tenure} ${loan.unit}`}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
                       {loan.interest}%
@@ -384,7 +502,7 @@ function LoanPage() {
             <div className="text-right">
               <p className="text-gray-400 text-sm">Average Loan Size</p>
               <p className="text-xl font-semibold text-white">
-                {formatCurrency(totalAmount/2)}
+                {formatCurrency(totalAmount / 2)}
               </p>
             </div>
           </div>

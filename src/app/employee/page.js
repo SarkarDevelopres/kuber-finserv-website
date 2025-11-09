@@ -1,6 +1,6 @@
 "use client"
 import EmpSideBar from '@/components/EmpSideBar'
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { toast } from 'react-toastify';
 import { FaUsers, FaHandHoldingUsd, FaChartLine } from "react-icons/fa";
 import { MdOutlineContactPage, MdTrendingUp } from "react-icons/md";
@@ -10,6 +10,7 @@ import { MdCurrencyExchange } from "react-icons/md";
 import { RiHeartsFill } from "react-icons/ri";
 import SpinnerComp from '@/components/Spinner';
 import { useRouter } from 'next/navigation';
+import { useNotification } from "@/context/notificationContext";
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
 import { CategoryScale, LinearScale, BarElement, Title, PointElement, LineElement, Filler } from 'chart.js';
 ChartJS.register(
@@ -37,7 +38,7 @@ export function LastLoanComponent({ index, loanType, userId, amount, date }) {
             <td className="px-6 py-4 text-sm text-gray-300">{index + 1}</td>
             <td className="px-6 py-4 text-sm font-medium text-blue-400">{loanType}</td>
             <td className="px-6 py-4 text-sm text-gray-300 font-mono">{userId.slice(0, 8)}...</td>
-            <td className="px-6 py-4 text-sm text-green-400 font-semibold">${amount.toLocaleString()}</td>
+            <td className="px-6 py-4 text-sm text-green-400 font-semibold">₹{amount.toLocaleString()}</td>
             <td className="px-6 py-4 text-sm text-gray-400">{normalDate || "..."}</td>
         </tr>
     );
@@ -52,7 +53,8 @@ function EmpPage() {
     const [isLoading, setIsLoading] = useState(true)
     const [userGraphData, setUserGraphData] = useState([]);
     const [appliedLoanGraphData, setAppliedLoanGraphData] = useState([]);
-
+    const empName = useRef(null)
+    const { hasNotification, setHasNotification } = useNotification();
     const router = useRouter();
 
     const [lineData, setLineData] = useState({
@@ -96,46 +98,6 @@ function EmpPage() {
         ],
     });
 
-    // Dummy data generator
-    const generateDummyData = () => {
-        // Stats
-        setTotalUser(1247);
-        setRejectedList(89);
-        setAppliedLoan(543);
-        setSanctionedLoan(387);
-
-        // Latest loans
-        const loans = [
-            { userId: "user_001", loanType: "Pro", amount: 21, createdAt: new Date().toISOString() },
-            { userId: "user_042", loanType: "Premium", amount: 34, createdAt: new Date(Date.now() - 86400000).toISOString() },
-            { userId: "user_156", loanType: "Free", amount: 5, createdAt: new Date(Date.now() - 172800000).toISOString() },
-            { userId: "user_289", loanType: "Pro", amount: 10, createdAt: new Date(Date.now() - 259200000).toISOString() },
-            { userId: "user_332", loanType: "Pro", amount: 12, createdAt: new Date(Date.now() - 345600000).toISOString() },
-        ];
-        setLatestAppliedLoan(loans);
-
-        // Graph data
-        const userData = [
-            { month: 8, totalUsers: 980 },
-            { month: 9, totalUsers: 1045 },
-            { month: 10, totalUsers: 1120 },
-            { month: 11, totalUsers: 1190 },
-            { month: 12, totalUsers: 1247 },
-        ];
-        setUserGraphData(userData);
-
-        const loanData = [
-            { month: 8, totalApplied: 420 },
-            { month: 9, totalApplied: 465 },
-            { month: 10, totalApplied: 498 },
-            { month: 11, totalApplied: 512 },
-            { month: 12, totalApplied: 543 },
-        ];
-        setAppliedLoanGraphData(loanData);
-
-        setIsLoading(false);
-    };
-
     const startUpData = async () => {
         try {
             let empToken = localStorage.getItem('empToken');
@@ -151,14 +113,20 @@ function EmpPage() {
                 },
             });
             let res = await req.json();
+            console.log(res);
+
             if (res.ok) {
-                setTotalUser(res.data.totalUsers);
-                setRejectedList(res.data.totalContacts);
-                setAppliedLoan(res.data.totalAppliedLoans);
-                setSanctionedLoan(res.data.totalSanctionedLoans);
-                setUserGraphData(res.data.userGraph);
-                setAppliedLoanGraphData(res.data.appliedLoanGraph);
-                setLatestAppliedLoan(res.data.latestAppliedLoans);
+                setTotalUser(res?.userCount);
+                setRejectedList(res.result.rejected ? res.result.rejcted : 0);
+                setAppliedLoan(res.result.applied ? res.result.applied : 0);
+                setSanctionedLoan(res.result.sanctioned ? res.result.sanctioned : 0);
+                setUserGraphData(res?.userGraph);
+                setAppliedLoanGraphData(res?.loanGraph);
+                setLatestAppliedLoan(res?.loans);
+
+                if (res.notification) {
+                    setHasNotification(true);
+                }
             }
         } catch (err) {
             console.error("Fetch error:", err);
@@ -168,7 +136,10 @@ function EmpPage() {
     }
 
     useEffect(() => {
-        // startUpData();
+        startUpData();
+        if (typeof window !== "undefined") {
+            empName.current = localStorage.getItem("name");
+        }
     }, [])
 
     useEffect(() => {
@@ -343,8 +314,8 @@ function EmpPage() {
             <div className="flex-1 p-8">
                 {/* Header */}
                 <div className="mb-8">
-                    <h1 className="text-3xl font-bold text-white mb-2">Dashboard Overview</h1>
-                    <p className="text-gray-400">Welcome back! Here's what's happening today.</p>
+                    <p className="text-gray-400">Welcome back!</p>
+                    <h1 className="text-3xl font-bold text-white mb-2">{empName.current}</h1>
                 </div>
 
                 {/* Stats Grid */}
