@@ -401,7 +401,7 @@ function Admin() {
                             <span className="text-green-400 text-sm font-semibold">+12.3% growth</span>
                         </div>
                         <div className="h-80">
-                            <Line data={lineData} options={chartOptions} />
+                            <Line data={lineData}/>
                         </div>
                     </div>
 
@@ -415,7 +415,7 @@ function Admin() {
                             <span className="text-green-400 text-sm font-semibold">+8.1% increase</span>
                         </div>
                         <div className="h-80">
-                            <Bar data={barData} options={chartOptions} />
+                            <Bar data={barData} />
                         </div>
                     </div>
                 </div>
