@@ -48,7 +48,7 @@ export function LoanModal({ loanData, closeWindow, fetchLoans }: any) {
     const confirmDelete = confirm("Permanently reject loan?");
     if (confirmDelete) {
       try {
-        let req = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/admin/rejectLoan`, {
+        const req = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/admin/rejectLoan`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -57,7 +57,7 @@ export function LoanModal({ loanData, closeWindow, fetchLoans }: any) {
             loanId: loanData.loanId,
           })
         });
-        let res = await req.json();
+        const res = await req.json();
         if (res.ok) {
           toast.success("Loan rejected successfully!");
           fetchLoans();
@@ -72,7 +72,7 @@ export function LoanModal({ loanData, closeWindow, fetchLoans }: any) {
 
   const sanctionLoan = async () => {
     try {
-      let req = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/admin/approveLoan`, {
+      const req = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/admin/approveLoan`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -81,7 +81,7 @@ export function LoanModal({ loanData, closeWindow, fetchLoans }: any) {
           loanId: loanData.loanId,
         })
       });
-      let res = await req.json();
+      const res = await req.json();
       if (res.ok) {
         toast.success("Loan sanctioned successfully!");
         fetchLoans();
@@ -184,20 +184,20 @@ function LoanPage() {
 
   const fetchLoanList = async () => {
     try {
-      let adminToken = localStorage.getItem('adminToken')
+      const adminToken = localStorage.getItem('adminToken')
       if (!adminToken || adminToken == "" || adminToken == null) {
         toast.error("Invaid Login");
         router.replace('/')
       }
 
-      let req = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/admin/fetchLoanList`, {
+      const req = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/admin/fetchLoanList`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${adminToken}`,
         },
       });
-      let res = await req.json();
+      const res = await req.json();
 
       if (res.ok) {
         console.log(res);

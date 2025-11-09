@@ -30,7 +30,7 @@ interface EmpModalProps {
     email: string;
     pan: string;
     aadhar: number;
-    address: object;
+    address: any;
     loanCount: number;
     contactCount: number;
     salarySlip: string,
@@ -52,7 +52,7 @@ export function EmpModal({ empData, closeWindow, fetchUsers }: EmpModalProps) {
     const confirmDelete = confirm("Permanently delete user?");
     if (confirmDelete) {
       try {
-        let req = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/admin/deleteUser`, {
+        const req = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/admin/deleteUser`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -61,7 +61,7 @@ export function EmpModal({ empData, closeWindow, fetchUsers }: EmpModalProps) {
             userId: empData.id,
           })
         });
-        let res = await req.json();
+        const res = await req.json();
         if (res.ok) {
           toast.success("User deleted successfully!");
           fetchUsers();
@@ -161,19 +161,19 @@ function UserPage() {
 
   const fetchTotalUsers = async () => {
     try {
-      let adminToken = localStorage.getItem('adminToken')
+      const adminToken = localStorage.getItem('adminToken')
       if (!adminToken || adminToken == "" || adminToken == null) {
         toast.error("Invaid Login");
         router.replace('/')
       }
-      let req = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/admin/fetchUser`, {
+      const req = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/admin/fetchUser`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${adminToken}`,   // send token in header
         },
       });
-      let res = await req.json();
+      const res = await req.json();
       if (res.ok) {
         console.log(res);
 
@@ -197,7 +197,7 @@ function UserPage() {
       setIsLoading(true);
 
 
-      let req = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/admin/findSingleUser`, {
+      const req = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/admin/findSingleUser`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -208,7 +208,7 @@ function UserPage() {
           email: searchData.email
         })
       });
-      let res = await req.json();
+      const res = await req.json();
 
       if (res.ok) {
         toast.success("User found!");

@@ -78,19 +78,19 @@ function ContactPage() {
 
   const fetchUsers = async () => {
     try {
-      let adminToken = localStorage.getItem('adminToken')
+      const adminToken = localStorage.getItem('adminToken')
       if (!adminToken || adminToken == "" || adminToken == null) {
         toast.error("Invaid Login");
         router.replace('/')
       }
-      let req = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/admin/fetchUserwContact`, {
+      const req = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/admin/fetchUserwContact`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${adminToken}`,   // send token in header
         },
       });
-      let res = await req.json();
+      const res = await req.json();
       if (res.ok) {
         console.log(res);        
         setUsers([...res.userlist]);
@@ -108,14 +108,14 @@ function ContactPage() {
     try {
       
       setIsLoading(true);
-       let req = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/admin/fetchConatcListforUser`, {
+       const req = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/admin/fetchConatcListforUser`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body:JSON.stringify({userId:userId}),
       });
-      let res = await req.json();
+      const res = await req.json();
 
       if (res.ok) {
         setContacts([...res.data]);

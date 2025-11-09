@@ -12,6 +12,7 @@ import SpinnerComp from '@/components/Spinner';
 import { log } from 'node:console';
 
 interface Employee {
+  _id:String,
   id: string;
   name: string;
   email: string;
@@ -84,14 +85,14 @@ export function EmpModal({ empData, closeWindow, fetchEmployees }: EmpModalProps
       const dateObj = new Date(year, month - 1, day);
       mutableEmpData.joinDate = dateObj.toString();
     }
-    let req = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/admin/editEmployee`, {
+    const req = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/admin/editEmployee`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({ ...mutableEmpData }),
     });
-    let res = await req.json();
+    const res = await req.json();
 
     if (res.ok) {
       toast.success("Employee Updated !");
@@ -105,7 +106,7 @@ export function EmpModal({ empData, closeWindow, fetchEmployees }: EmpModalProps
     const confirmDelete = confirm("Permanently delete employee?");
     if (confirmDelete) {
       try {
-        let req = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/admin/deleteEmployee`, {
+        const req = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/admin/deleteEmployee`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -114,7 +115,7 @@ export function EmpModal({ empData, closeWindow, fetchEmployees }: EmpModalProps
             empId: empData._id,
           })
         });
-        let res = await req.json();
+        const res = await req.json();
         if (res.ok) {
           toast.success("Employee deleted successfully !")
           fetchEmployees();
@@ -273,19 +274,19 @@ function EmpPage() {
   const fetchEmployees = async () => {
     try {
 
-      let adminToken = localStorage.getItem('adminToken')
+      const adminToken = localStorage.getItem('adminToken')
       if (!adminToken || adminToken == "" || adminToken == null) {
         toast.error("Invaid Login");
         router.replace('/')
       }
-      let req = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/admin/fetchEmployee`, {
+      const req = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/admin/fetchEmployee`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${adminToken}`,   // send token in header
         },
       });
-      let res = await req.json();
+      const res = await req.json();
 
       if (res.ok) {
         setEmployeeList([...res.data.employeeList]);
@@ -310,9 +311,9 @@ function EmpPage() {
 
     try {
       setIsLoading(true)
-      let adminToken = localStorage.getItem('adminToken');
+      const adminToken = localStorage.getItem('adminToken');
 
-      const newEmployee: Employee = {
+      const newEmployee: any = {
         id: `EMP${String(employeeList.length + 1).padStart(3, '0')}`,
         name: empData.name,
         email: empData.email,
@@ -323,7 +324,7 @@ function EmpPage() {
         status: 'active'
       };
 
-      let req = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/admin/addEmployee`, {
+      const req = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/admin/addEmployee`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -333,7 +334,7 @@ function EmpPage() {
           newEmployee: newEmployee
         }),
       });
-      let res = await req.json();
+      const res = await req.json();
       if (res.ok) {
         setEmployeeList(prev => [newEmployee, ...prev]);
         setEmpData({
